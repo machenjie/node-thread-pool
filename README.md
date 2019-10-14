@@ -14,12 +14,12 @@ If you want to run out of the computer resource, you need this.
 ## Installation
 
 ```sh
-$ npm install node-thread-pool [--save]
+$ npm install @mcjxy/node-thread-pool [--save]
 ```
 
 ## Examples
 ```
-const ThreadPool = require('node-thread-pool');
+const ThreadPool = require('@mcjxy/node-thread-pool');
 const threadPool = new ThreadPool(undefined, 10);
 (async () => {
   for (let i = 0; i < 100; i++) {
