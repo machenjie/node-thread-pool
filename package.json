@@ -1,0 +1,49 @@
+{
+  "name": "node-thread-pool",
+  "version": "1.0.0",
+  "description": "Easy way to manage a pool of worker threads.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --experimental-worker --trace-warnings ./test/test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/machenjie/node-thread-pool.git"
+  },
+  "keywords": [
+    "thread",
+    "pool",
+    "worker_threads",
+    "workers",
+    "threads",
+    "worker",
+    "async",
+    "cpu-bound",
+    "parallelism",
+    "parallel",
+    "process",
+    "worker_thread",
+    "queue",
+    "task",
+    "threadpool",
+    "thread-pool"
+  ],
+  "author": {
+    "name": "Chenjie Ma",
+    "email": "yy909098@hotmail.com"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/machenjie/node-thread-pool/issues"
+  },
+  "homepage": "https://github.com/machenjie/node-thread-pool#readme",
+  "dependencies": {
+    "is": "^3.3.0",
+    "is-promise": "^2.1.0",
+    "uuid": "^3.3.3"
+  },
+  "devDependencies": {
+    "eslint": "^6.5.1",
+    "eslint-config-egg": "^7.5.1"
+  }
+}
