@@ -24,15 +24,12 @@ class ThreadPool {
     this._start();
   }
 
-  async dispatch(method, ...args) {
-    if (typeof method !== 'function') {
-      throw new Error('method must be a function');
-    }
+  async dispatch(file, ...args) {
     if (this.canceling) {
       throw new Error('tasks in canceling');
     }
     const msgID = uuidv4();
-    this.queue.push({ method: method.toString(), args, msgID });
+    this.queue.push({ file, args, msgID });
     const promise = new Promise((resolve, reject) => {
       this.ee.once(msgID, result => {
         result.error ? reject(result.error) : resolve(result.result);

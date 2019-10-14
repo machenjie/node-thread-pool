@@ -18,15 +18,16 @@ $ npm install @mcjxy/node-thread-pool [--save]
 ```
 
 ## Examples
+[test.js](https://github.com/machenjie/node-thread-pool/blob/master/test/test.js)
 ```
-const ThreadPool = require('@mcjxy/node-thread-pool');
-const threadPool = new ThreadPool(undefined, 10);
+const ThreadPool = require('../src/thread-pool');
+const path = require('path');
+
+const threadPool = new ThreadPool(9, 200);
 (async () => {
-  for (let i = 0; i < 100; i++) {
-    threadPool.dispatch(data => {
-      console.log('worker: data', data);
-      return data;
-    }, i).then(v => {
+  process.setMaxListeners(0);
+  for (let i = 0; i < 200; i++) {
+    threadPool.dispatch(path.resolve(__dirname, './task.js'), i).then(v => {
       console.log('main: data ', v);
     }).catch(e => {
       console.log(e);
@@ -35,17 +36,13 @@ const threadPool = new ThreadPool(undefined, 10);
   await threadPool.wait();
 
   for (let i = 0; i < 1000; i++) {
-    threadPool.dispatch(data => {
-      console.log('worker: data', data);
-      return data;
-    }, i);
+    threadPool.dispatch(path.resolve(__dirname, './task.js'), i);
   }
   console.log('start cancel', (new Date()).toISOString());
   await threadPool.cancel();
   console.log('end cancel', (new Date()).toISOString());
 })();
 ```
-
 Note: if the thread count is more than 10, after you use the console.log in every thread, you will get a warnning: (node:9768) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 error listeners added. Use emitter.setMaxListeners() to increase limit. You can add "--trace-warnings" start option to check more information.
 ## API
 
@@ -54,10 +51,10 @@ the constructor, after you call this, thread pool are ready
 - `threadNum` :  integer Thread number of the pool
 - `maxRunningTask` : integer Max running tasks of all threads
 
-### ThreadPool.dispatch(method, ...args)
+### ThreadPool.dispatch(file, ...args)
 dispatch a task
-- `method` :  function It can be a normal function or a promise function, function accept two parameter, method(threadID, ...args)
-- `args` : A list of args which will be trans to the method
+- `file` :  string Javascript absolute file path, it should export a function which accept two parameter, method(threadID, ...args)
+- `args` : A list of args which will be trans to the method of the js file
 - `return` : promise<any> You can use this to get task return data
 
 ### ThreadPool.wait()

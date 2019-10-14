@@ -21,8 +21,7 @@ parentPort.on('message', msg => {
   };
 
   try {
-    // eslint-disable-next-line no-eval
-    const method = eval(`(${msg.method})`);
+    const method = require(msg.file);
     const result = method(threadId, ...msg.args);
 
     if (isPromise(result)) {
