@@ -15,7 +15,7 @@ parentPort.on('message', msg => {
   const postErrorMessage = error => {
     parentPort.postMessage({
       type: MsgDefine.MSG_RUN_ERROR,
-      error,
+      error: error.toString() + error.stack,
       msgID: msg.msgID,
     });
   };

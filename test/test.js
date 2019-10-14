@@ -10,7 +10,7 @@ const threadPool = new ThreadPool(9, 200);
     threadPool.dispatch(path.resolve(__dirname, './task.js'), i).then(v => {
       console.log('main: data ', v);
     }).catch(e => {
-      console.log(e);
+      console.log('error:', e);
     });
   }
   await threadPool.wait();
