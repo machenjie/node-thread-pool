@@ -48,8 +48,8 @@ Note: if the thread count is more than 10, after you use the console.log in ever
 
 ### ThreadPool(threadNum, maxRunningTask)
 the constructor, after you call this, thread pool are ready
-- `threadNum` :  integer Thread number of the pool
-- `maxRunningTask` : integer Max running tasks of all threads
+- `threadNum` :  integer Thread number of the pool. default is cpu number
+- `maxRunningTask` : integer Max running tasks of all threads. 0 for unlimited. default is 0
 
 ### ThreadPool.dispatch(file, ...args)
 dispatch a task

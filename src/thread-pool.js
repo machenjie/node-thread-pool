@@ -12,7 +12,7 @@ const MsgDefine = require('./msg-define');
 const cpuNum = require('os').cpus().length;
 
 class ThreadPool {
-  constructor(threadNum = cpuNum, maxRunningTask = cpuNum) {
+  constructor(threadNum = cpuNum, maxRunningTask = 0) {
     this.workerDealInfo = [];
     this.ee = new EventEmitter();
     this.queue = [];
@@ -20,7 +20,7 @@ class ThreadPool {
     this.canceling = false;
     this.waiting = false;
     this.threadNum = threadNum ? threadNum : cpuNum;
-    this.maxRunningTask = maxRunningTask ? maxRunningTask : cpuNum;
+    this.maxRunningTask = maxRunningTask;
     this._start();
   }
 
@@ -109,7 +109,7 @@ class ThreadPool {
   }
 
   _getFreeWorkerIndex() {
-    if (this.running.length >= this.maxRunningTask) {
+    if (this.maxRunningTask && this.running.length >= this.maxRunningTask) {
       return -1;
     }
     let dealWorkerIndex = 0;
