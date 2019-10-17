@@ -43,7 +43,9 @@ const threadPool = new ThreadPool(9, 200);
   console.log('end cancel', (new Date()).toISOString());
 })();
 ```
-Note: if the thread count is more than 10, after you use the console.log in every thread, you will get a warnning: (node:9768) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 error listeners added. Use emitter.setMaxListeners() to increase limit. You can add "--trace-warnings" start option to check more information.
+Note: If the thread count is more than 10, after you use the console.log in every thread, you will get a warnning: (node:9768) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 error listeners added. Use emitter.setMaxListeners() to increase limit. You can add "--trace-warnings" start option to check more information.
+
+Note: Each thread has a separate global data
 ## API
 
 ### ThreadPool(threadNum, maxRunningTask)
