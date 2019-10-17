@@ -20,7 +20,7 @@ $ npm install @mcjxy/node-thread-pool [--save]
 ## Examples
 [test.js](https://github.com/machenjie/node-thread-pool/blob/master/test/test.js)
 ```
-const ThreadPool = require('../src/thread-pool');
+const ThreadPool = require('@mcjxy/node-thread-pool');
 const path = require('path');
 
 const threadPool = new ThreadPool(9, 200);
