@@ -2,7 +2,11 @@
 
 let count = 0;
 
-module.exports = (threadId, data) => {
-  console.log('worker', threadId, ': data', data, 'count:', count++);
-  return data;
+module.exports = async (threadId, data) => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      console.log('worker', threadId, ': data', data, 'count:', count++);
+      resolve(data);
+    }, 1000);
+  });
 };

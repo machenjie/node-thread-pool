@@ -5,7 +5,6 @@ const path = require('path');
 
 const threadPool = new ThreadPool(9, 200);
 (async () => {
-  process.setMaxListeners(0);
   for (let i = 0; i < 200; i++) {
     threadPool.dispatch(path.resolve(__dirname, './task.js'), i).then(v => {
       console.log('main: data ', v);
@@ -13,7 +12,11 @@ const threadPool = new ThreadPool(9, 200);
       console.log('error:', e);
     });
   }
-  await threadPool.wait();
+  try {
+    await threadPool.wait(100);
+  } catch (e) {
+    console.log(e);
+  }
 
   for (let i = 0; i < 1000; i++) {
     threadPool.dispatch(path.resolve(__dirname, './task.js'), i);

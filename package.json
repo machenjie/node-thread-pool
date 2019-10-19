@@ -1,6 +1,6 @@
 {
   "name": "@mcjxy/node-thread-pool",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Easy way to manage a pool of worker threads.",
   "main": "index.js",
   "scripts": {
@@ -40,7 +40,8 @@
   "dependencies": {
     "is": "^3.3.0",
     "is-promise": "^2.1.0",
-    "uuid": "^3.3.3"
+    "uuid": "^3.3.3",
+    "wait-notify": "^1.0.1"
   },
   "devDependencies": {
     "eslint": "^6.5.1",

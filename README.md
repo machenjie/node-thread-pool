@@ -59,11 +59,15 @@ dispatch a task
 - `args` : A list of args which will be trans to the method of the js file
 - `return` : promise<any> You can use this to get task return data
 
-### ThreadPool.wait()
+### ThreadPool.wait(timeout)
 wait until all the tasks run end
+- `timeout` :  integer The max time to wait in second. default is infinite.
+- `return` : promise Wait tasks run end, or catch the timeout error
 
-### ThreadPool.cancel()
+### ThreadPool.cancel(timeout)
 cancel the tasks which are not running, and wait until all the running tasks run end
+- `timeout` :  integer The max time to wait in second. default is infinite.
+- `return` : promise Wait cancel run end, or catch the timeout error
 
 ## License
 

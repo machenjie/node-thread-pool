@@ -8,6 +8,7 @@ const path = require('path');
 const { Worker } = require('worker_threads');
 const { EventEmitter } = require('events');
 const uuidv4 = require('uuid/v4');
+const WaitNotify = require('wait-notify');
 const MsgDefine = require('./msg-define');
 const cpuNum = require('os').cpus().length;
 
@@ -21,6 +22,7 @@ class ThreadPool {
     this.waiting = false;
     this.threadNum = threadNum ? threadNum : cpuNum;
     this.maxRunningTask = maxRunningTask;
+    this.waitingWN = new WaitNotify();
     this._start();
   }
 
@@ -39,24 +41,26 @@ class ThreadPool {
     return promise;
   }
 
-  async cancel() {
+  async cancel(timeout = 0) {
     this.queue = [];
     this.canceling = true;
-    await this.wait();
-    this.canceling = false;
+    try {
+      await this.wait(timeout);
+    } finally {
+      this.canceling = false;
+    }
   }
 
-  async wait() {
+  async wait(timeout = 0) {
     if (this.running.length === 0 && this.queue.length === 0) {
       return;
     }
     this.waiting = true;
-    await new Promise(resolve => {
-      this.ee.once(MsgDefine.MSG_ALL_TASK_END, () => {
-        resolve();
-      });
-    });
-    this.waiting = false;
+    try {
+      await this.waitingWN.wait(timeout);
+    } finally {
+      this.waiting = false;
+    }
   }
 
   _start() {
@@ -78,7 +82,7 @@ class ThreadPool {
               });
               this.running = this.running.filter(task => task.msgID !== msg.msgID);
               if (this.running.length === 0 && this.queue.length === 0 && this.waiting) {
-                this.ee.emit(MsgDefine.MSG_ALL_TASK_END);
+                this.waitingWN.notify();
               }
               this._next();
               break;
