@@ -1,6 +1,6 @@
 {
   "name": "@mcjxy/node-thread-pool",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "Easy way to manage a pool of worker threads.",
   "main": "index.js",
   "scripts": {

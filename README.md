@@ -1,4 +1,6 @@
 # node-thread-pool
+This project will not maintained, a new project will use instead[@mcjxy/task-pool](https://github.com/machenjie/task-pool)
+
 Run out of the computer resource just in on process!
 
 Use the **--experimental-worker** flag to run correctly, since this resource still experimental in NodeJs.
