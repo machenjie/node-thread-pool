@@ -26,6 +26,7 @@ module.exports = class {
       this._workers.splice(workerIndex, 1);
       return removeRunningTasks;
     }
+    return [];
   }
 
   getWorkerByID(workerID) {
