@@ -12,7 +12,7 @@ module.exports = class {
   }
 
   get runningTasksCount() {
-    return this._workers.reduce((accumulator, currentValue) => accumulator + currentValue.runningTasks.length, 0);
+    return this._workers.reduce((accumulator, currentValue) => accumulator + currentValue.runningTasksCount, 0);
   }
 
   addWorker(worker, workerID) {

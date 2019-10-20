@@ -138,7 +138,7 @@ class ThreadPool {
         this._receiveResult(result);
       });
       worker.on('online', () => {
-        if (this.workers.count + 1 >= this.threadNum) {
+        if (!this.isInit && this.workers.count + 1 >= this.threadNum) {
           this.initWN.notify();
           this.isInit = true;
         }

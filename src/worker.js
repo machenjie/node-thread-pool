@@ -20,6 +20,10 @@ module.exports = class {
     return [ ...this._runningTasks ];
   }
 
+  get runningTasksCount() {
+    return this._runningTasks.length;
+  }
+
   sendTask(task) {
     this._worker.postMessage(task);
     this._runningTasks.push(task);
