@@ -9,21 +9,31 @@ const { Worker } = require('worker_threads');
 const { EventEmitter } = require('events');
 const uuidv4 = require('uuid/v4');
 const WaitNotify = require('wait-notify');
-const MsgDefine = require('./msg-define');
+const Msg = require('./define/msg');
+const Task = require('./define/task');
+const Result = require('./define/result');
+const Workers = require('./workers');
 const cpuNum = require('os').cpus().length;
 
 class ThreadPool {
   constructor(threadNum = cpuNum, maxRunningTask = 0) {
-    this.workerDealInfo = [];
-    this.ee = new EventEmitter();
-    this.queue = [];
-    this.running = [];
-    this.canceling = false;
-    this.waiting = false;
     this.threadNum = threadNum ? threadNum : cpuNum;
     this.maxRunningTask = maxRunningTask;
+    this.workers = new Workers();
+    this.queue = [];
+    this.canceling = false;
+    this.waiting = false;
     this.waitingWN = new WaitNotify();
-    this._start();
+    this.resultEE = new EventEmitter();
+    this.isInit = false;
+    this.initWN = new WaitNotify();
+    this._init();
+  }
+
+  async init(timeout = 0) {
+    if (!this.isInit) {
+      await this.initWN.wait(timeout);
+    }
   }
 
   async dispatch(file, ...args) {
@@ -31,14 +41,14 @@ class ThreadPool {
       throw new Error('tasks in canceling');
     }
     const msgID = uuidv4();
-    this.queue.push({ file, args, msgID });
-    const promise = new Promise((resolve, reject) => {
-      this.ee.once(msgID, result => {
-        result.error ? reject(result.error) : resolve(result.result);
+    this.queue.push(new Task(file, args, msgID));
+    const resultPromise = new Promise((resolve, reject) => {
+      this.resultEE.once(msgID, result => {
+        result.msgType === Msg.MSG_RUN_ERROR ? reject(result.error) : resolve(result.result);
       });
     });
     this._next();
-    return promise;
+    return resultPromise;
   }
 
   async cancel(timeout = 0) {
@@ -52,7 +62,7 @@ class ThreadPool {
   }
 
   async wait(timeout = 0) {
-    if (this.running.length === 0 && this.queue.length === 0) {
+    if (this.workers.runningTasksCount === 0 && this.queue.length === 0) {
       return;
     }
     this.waiting = true;
@@ -63,66 +73,78 @@ class ThreadPool {
     }
   }
 
-  _start() {
-    if (this.workerDealInfo.length === 0) {
-      for (let index = 0; index < this.threadNum; index++) {
-        const currentIndex = index;
-        const worker = new Worker(__dirname + path.sep + 'worker-task.js');
-        worker.on('exit', () => {
-          this.workerDealInfo.splice(currentIndex, 1);
-        });
-        worker.on('message', msg => {
-          this.workerDealInfo[currentIndex].count--;
-          switch (msg.type) {
-            case MsgDefine.MSG_RUN_RESULT:
-            case MsgDefine.MSG_RUN_ERROR:
-              this.ee.emit(msg.msgID, {
-                result: msg.result,
-                error: msg.error,
-              });
-              this.running = this.running.filter(task => task.msgID !== msg.msgID);
-              if (this.running.length === 0 && this.queue.length === 0 && this.waiting) {
-                this.waitingWN.notify();
-              }
-              this._next();
-              break;
-            default:
-              throw new Error('unknown msg type: ' + msg.type);
-          }
-        });
-        this.workerDealInfo.push({
-          worker,
-          count: 0,
-        });
-      }
-    }
-  }
-
   _next() {
+    if (!this.isInit) {
+      return;
+    }
     if (this.queue.length === 0) {
       return;
     }
-    const freeIndex = this._getFreeWorkerIndex();
-    if (freeIndex === -1) {
+    if (this.maxRunningTask && this.workers.runningTasksCount >= this.maxRunningTask) {
       return;
     }
-    const task = this.queue.shift();
-    this.running.push(task);
-    this.workerDealInfo[freeIndex].count++;
-    this.workerDealInfo[freeIndex].worker.postMessage(task);
+    this._sendTask();
   }
 
-  _getFreeWorkerIndex() {
-    if (this.maxRunningTask && this.running.length >= this.maxRunningTask) {
-      return -1;
+  _addWorker(worker, workerID) {
+    this.workers.addWorker(worker, workerID);
+    this._next();
+  }
+
+  _removeWorker(workerID) {
+    const removeRunningTasks = this.workers.removeWorker(workerID);
+    removeRunningTasks.forEach(task => {
+      this.resultEE.emit(task.msgID, new Result(Msg.MSG_RUN_ERROR, undefined, 'worker ' + workerID + ' being removed', task.msgID, task.workerID));
+    });
+    if (this.workers.runningTasksCount === 0 && this.queue.length === 0 && this.waiting) {
+      this.waitingWN.notify();
     }
-    let dealWorkerIndex = 0;
-    for (let index = 0; index < this.workerDealInfo.length; index++) {
-      if (this.workerDealInfo[index].count < this.workerDealInfo[dealWorkerIndex].count) {
-        dealWorkerIndex = index;
+    this._next();
+  }
+
+  _sendTask() {
+    const worker = this.workers.getFreeWorker();
+    if (worker) {
+      const task = this.queue.shift();
+      task.workerID = worker.id;
+      worker.sendTask(task);
+      this._next();
+    }
+  }
+
+  _receiveResult(result) {
+    this.resultEE.emit(result.msgID, result);
+    const worker = this.workers.getWorkerByID(result.workerID);
+    if (worker) {
+      worker.receiveResult(result);
+      if (this.workers.runningTasksCount === 0 && this.queue.length === 0 && this.waiting) {
+        this.waitingWN.notify();
       }
+      this._next();
     }
-    return dealWorkerIndex;
+  }
+
+  _init() {
+    for (let index = 0; index < this.threadNum; index++) {
+      const worker = new Worker(path.resolve(__dirname, 'worker-task.js'));
+      const workerID = worker.threadId;
+      worker.on('exit', () => {
+        this._removeWorker(workerID);
+      });
+      worker.on('error', () => {
+        this._removeWorker(workerID);
+      });
+      worker.on('message', result => {
+        this._receiveResult(result);
+      });
+      worker.on('online', () => {
+        if (this.workers.count + 1 >= this.threadNum) {
+          this.initWN.notify();
+          this.isInit = true;
+        }
+        this._addWorker(worker, workerID);
+      });
+    }
   }
 }
 

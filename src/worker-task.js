@@ -2,27 +2,20 @@
 
 const isPromise = require('is-promise');
 const { parentPort, threadId } = require('worker_threads');
-const MsgDefine = require('./msg-define');
+const Msg = require('./define/msg');
+const Result = require('./define/result');
 
-parentPort.on('message', msg => {
+parentPort.on('message', task => {
   const postResultMessage = result => {
-    parentPort.postMessage({
-      type: MsgDefine.MSG_RUN_RESULT,
-      result,
-      msgID: msg.msgID,
-    });
+    parentPort.postMessage(new Result(Msg.MSG_RUN_RESULT, result, undefined, task.msgID, threadId));
   };
   const postErrorMessage = error => {
-    parentPort.postMessage({
-      type: MsgDefine.MSG_RUN_ERROR,
-      error: error.toString() + error.stack,
-      msgID: msg.msgID,
-    });
+    parentPort.postMessage(new Result(Msg.MSG_RUN_RESULT, undefined, error.toString() + error.stack, task.msgID, threadId));
   };
 
   try {
-    const method = require(msg.file);
-    const result = method(threadId, ...msg.args);
+    const method = require(task.file);
+    const result = method(threadId, ...task.args);
 
     if (isPromise(result)) {
       result.then(result => {

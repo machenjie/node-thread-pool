@@ -53,8 +53,13 @@ the constructor, after you call this, thread pool are ready
 - `threadNum` :  integer Thread number of the pool. default is cpu number
 - `maxRunningTask` : integer Max running tasks of all threads. 0 for unlimited. default is 0
 
+### ThreadPool.init(timeout)
+wait until pool init end. You don't need to call this function unless you want your task to be executed immediately after call dispatch
+- `timeout` :  integer The max time to wait in second. default is infinite.
+- `return` : promise Wait until pool init end, or catch the timeout error
+
 ### ThreadPool.dispatch(file, ...args)
-dispatch a task
+dispatch a task, the tasks will add to the queue until any worker can run the task
 - `file` :  string Javascript absolute file path, it should export a function which accept two parameter, method(threadID, ...args)
 - `args` : A list of args which will be trans to the method of the js file
 - `return` : promise<any> You can use this to get task return data
