@@ -10,7 +10,7 @@ parentPort.on('message', task => {
     parentPort.postMessage(new Result(Msg.MSG_RUN_RESULT, result, undefined, task.msgID, threadId));
   };
   const postErrorMessage = error => {
-    parentPort.postMessage(new Result(Msg.MSG_RUN_RESULT, undefined, error.toString() + error.stack, task.msgID, threadId));
+    parentPort.postMessage(new Result(Msg.MSG_RUN_ERROR, undefined, error.toString() + error.stack, task.msgID, threadId));
   };
 
   try {
