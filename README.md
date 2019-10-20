@@ -25,7 +25,6 @@ const path = require('path');
 
 const threadPool = new ThreadPool(9, 200);
 (async () => {
-  process.setMaxListeners(0);
   for (let i = 0; i < 200; i++) {
     threadPool.dispatch(path.resolve(__dirname, './task.js'), i).then(v => {
       console.log('main: data ', v);
@@ -54,7 +53,7 @@ the constructor, after you call this, thread pool are ready
 - `maxRunningTask` : integer Max running tasks of all threads. 0 for unlimited. default is 0
 
 ### ThreadPool.init(timeout)
-wait until pool init end. You don't need to call this function unless you want your task to be executed immediately after call dispatch
+wait until pool init end. You don't need to call this function unless you want your task to be executed immediately after call dispatch at the first time
 - `timeout` :  integer The max time to wait in second. default is infinite.
 - `return` : promise Wait until pool init end, or catch the timeout error
 
